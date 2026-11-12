@@ -57,3 +57,89 @@ document.querySelectorAll('[data-k]').forEach(b=>{let k=b.dataset.k.toLowerCase(
 let last=performance.now();function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-last)/1000,.04);last=now;let f=(keys['w']||keys['arrowup']?1:0)-(keys['s']||keys['arrowdown']?1:0),side=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0);let dir=new THREE.Vector3(side,0,-f);if(dir.length()){dir.normalize().multiplyScalar(10*dt);avatar.position.add(dir);avatar.position.x=THREE.MathUtils.clamp(avatar.position.x,-32,32);avatar.position.z=THREE.MathUtils.clamp(avatar.position.z,-32,28);avatar.rotation.y=Math.atan2(dir.x,-dir.z)}camera.position.lerp(new THREE.Vector3(avatar.position.x,4.2,avatar.position.z+8),.09);camera.lookAt(avatar.position.x,1.2,avatar.position.z-2);ship.rotation.y=Math.sin(now*.0004)*.04;coord.textContent='GRID '+Math.round(avatar.position.x)+' / '+Math.round(avatar.position.z);renderer.render(scene,camera)}requestAnimationFrame(animate);
 window.addEventListener('resize',()=>{camera.aspect=root.clientWidth/root.clientHeight;camera.updateProjectionMatrix();renderer.setSize(root.clientWidth,root.clientHeight)});})();
 </script></body></html>"""
+
+# Render the game component and all Streamlit controls below it.
+components.html(game, height=590, scrolling=False)
+
+st.markdown('<div style="padding:12px 2vw 0">', unsafe_allow_html=True)
+cols=st.columns(4)
+for col,label,value in zip(cols,["GALACTIC CLOCK","DEFENCE CREDITS","EVIDENCE FILES","MISSIONS VISITED"],[f"{st.session_state.hours} HRS",st.session_state.credits,len(st.session_state.evidence),len(st.session_state.visited)]):
+    with col:
+        st.markdown(f'<div class="panel"><div class="kicker">{label}</div><div class="metric">{value}</div></div>',unsafe_allow_html=True)
+st.markdown("</div>",unsafe_allow_html=True)
+
+tabs=st.tabs(["COMMAND DECK","FIELD MISSIONS","EVIDENCE ARCHIVE","SCIENTIST & SHIP","THE TRIBUNAL"])
+missions=[
+("KARACHI — COASTAL FRONTIER","Pakistan · Coastal resilience","Investigate urban water systems, coastal waste and community adaptation.",28,18,"Karachi Coastal Resilience Dossier"),
+("AMAZON — BIOSPHERE ARCHIVE","Brazil · Biodiversity","Build a record of ecosystem services and biodiversity pressure.",24,16,"Amazon Biodiversity Record"),
+("ARCTIC — CRYOSPHERE STATION","Arctic · Climate science","Assess ice observations and climate indicators.",26,18,"Cryosphere Observation Log"),
+("ORBITAL — ATMOSPHERE ARRAY","Low Earth orbit · Atmosphere","Analyse atmospheric monitoring and greenhouse-gas records.",22,14,"Atmospheric Composition Brief")]
+with tabs[0]:
+    left,right=st.columns([1.4,1])
+    with left:
+        st.markdown('<div class="panel"><div class="kicker">MISSION DIRECTIVE // 001</div><h2>DEFEND THE BLUE WORLD</h2><p class="sub">The United Galactic Tribunal has charged Earth with ecological negligence. You have 72 galactic hours to gather evidence and prepare a defence.</p><p>Explore the AURELIUS-9, a Pakistani expedition vessel decorated with truck-art motifs, emerald enamel, brass filigree and hand-painted floral geometry.</p><div class="kicker">PRIMARY OBJECTIVE: BUILD A DEFENSIBLE CASE.</div></div>',unsafe_allow_html=True)
+    with right:
+        st.markdown('<div class="panel"><div class="kicker">YOUR SCIENTIST</div><div class="metric">DR. RAZA QURESHI</div><p class="sub">Planetary Evidence Scientist · Karachi, Pakistan</p><p>Coastal systems researcher appointed to the Earth Defence Division.</p></div>',unsafe_allow_html=True)
+with tabs[1]:
+    st.markdown("### FIELD OPERATIONS // SELECT A LANDING ZONE")
+    st.caption("Explore the hangar above, then launch a field investigation here.")
+    for i,(name,loc,desc,reward,cost,file) in enumerate(missions):
+        with st.container(border=True):
+            c1,c2=st.columns([3,1])
+            with c1:
+                st.markdown(f"**{name}**")
+                st.caption(loc)
+                st.write(desc)
+            with c2:
+                st.metric("Evidence value",f"+{reward}")
+                if st.button("INVESTIGATE",key=f"mission{i}",disabled=name in st.session_state.visited or st.session_state.hours<cost):
+                    st.session_state.evidence.append({"mission":name,"file":file,"value":reward,"note":desc})
+                    st.session_state.visited.append(name)
+                    st.session_state.credits-=cost//3
+                    st.session_state.hours-=cost
+                    st.success("Evidence secured and archived.")
+                    st.rerun()
+with tabs[2]:
+    st.markdown("### EVIDENCE ARCHIVE // COURT-ADMISSIBLE MATERIAL")
+    if not st.session_state.evidence:
+        st.info("No evidence secured yet. Complete field investigations to build your defence.")
+    for i,e in enumerate(st.session_state.evidence):
+        st.markdown(f'<div class="panel"><div class="kicker">EXHIBIT {i+1:02d} // FIELD VERIFIED</div><h3>{e["file"]}</h3><p>{e["mission"]}</p><div class="kicker">DEFENCE VALUE: +{e["value"]} · {e["note"]}</div></div>',unsafe_allow_html=True)
+with tabs[3]:
+    left,right=st.columns(2)
+    with left:
+        st.markdown("### SCIENTIST PROFILE")
+        name=st.text_input("Scientist name",st.session_state.profile["name"])
+        call=st.text_input("Callsign",st.session_state.profile["call"])
+        origin=st.selectbox("Home base",["Karachi, Pakistan","Lahore, Pakistan","Islamabad, Pakistan","Peshawar, Pakistan","Quetta, Pakistan"])
+        speciality=st.selectbox("Specialisation",["Planetary Evidence Scientist","Climate Systems Analyst","Oceanographer","Biodiversity Researcher","Space Systems Engineer"])
+        if st.button("SAVE SCIENTIST PROFILE"):
+            st.session_state.profile={"name":name,"call":call,"origin":origin,"speciality":speciality}
+            st.success("Profile saved.")
+    with right:
+        st.markdown("### VESSEL CONFIGURATION")
+        ship=st.text_input("Spaceship name",st.session_state.ship)
+        livery=st.selectbox("Interior livery",["Truck-art emerald & marigold","Indus blue & copper","Desert rose & brass","Monochrome stealth"])
+        st.markdown('<div class="panel"><div class="kicker">PAKISTANI DESIGN LANGUAGE</div><h3 style="color:#e7bd55">AJRAK · PHULKARI · TRUCK ART</h3><p>Painted floral rosettes, mirror-work-inspired lighting, emerald enamel, brass trim and geometric borders.</p></div>',unsafe_allow_html=True)
+        if st.button("REFIT VESSEL"):
+            st.session_state.ship=ship
+            st.success(f"{ship} refit queued with {livery} livery.")
+with tabs[4]:
+    st.markdown("### UNITED GALACTIC TRIBUNAL")
+    st.write("The prosecution alleges that Earth has failed its obligations to the galactic biosphere. Present a proportionate, evidence-led defence.")
+    total=sum(e["value"] for e in st.session_state.evidence)
+    st.metric("Current evidence strength",f"{total} / 100")
+    st.radio("Choose your closing strategy",["Humanity can reform: submit a binding restoration plan.","The evidence is incomplete: request monitored probation.","Present context and request a conditional acquittal."])
+    if st.button("SUBMIT FINAL DEFENCE",use_container_width=True):
+        if len(st.session_state.evidence)<2:
+            st.warning("The tribunal requires at least two exhibits.")
+        else:
+            if total>=70:
+                st.session_state.verdict=("CONDITIONAL ACQUITTAL","Earth is granted another chance under a planetary restoration charter.")
+            elif total>=45:
+                st.session_state.verdict=("PROBATION","Earth must meet measurable recovery milestones under galactic observation.")
+            else:
+                st.session_state.verdict=("DEFERRED VERDICT","The tribunal orders further investigation.")
+    if st.session_state.verdict:
+        st.markdown(f'<div class="panel"><div class="kicker">OFFICIAL TRIBUNAL RULING</div><div class="brand" style="font-size:clamp(24px,4vw,42px)">{st.session_state.verdict[0]}</div><p>{st.session_state.verdict[1]}</p></div>',unsafe_allow_html=True)
+st.markdown('<div style="padding:20px;color:#76918d;font:12px monospace;text-align:center">EARTH ON TRIAL // AURELIUS-9 // PAKISTAN BUILT · EARTH DEFENCE DIVISION</div>',unsafe_allow_html=True)
