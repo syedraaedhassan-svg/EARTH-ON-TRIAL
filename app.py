@@ -77,7 +77,7 @@ function initRenderer(){
  camera=new THREE.PerspectiveCamera(76,innerWidth/innerHeight,.08,700);camera.rotation.order='YXZ';
  renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
  clock=new THREE.Clock();scene.add(new THREE.HemisphereLight(0xc6e5f4,0x35302a,2.1));const sun=new THREE.DirectionalLight(0xffe1b0,3.2);sun.position.set(-35,70,25);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;scene.add(sun);
- createPilot();animate();
+ animate();
 }
 function makePilot(){
  const g=new THREE.Group(),suit=new THREE.MeshStandardMaterial({color:0x153f3d,metalness:.35,roughness:.55}),gold=new THREE.MeshStandardMaterial({color:0xc9a34d,metalness:.65,roughness:.28}),skin=new THREE.MeshStandardMaterial({color:0x9b684d,roughness:.8}),glass=new THREE.MeshPhysicalMaterial({color:0x172e3c,metalness:.8,roughness:.12,clearcoat:1});
@@ -206,7 +206,24 @@ $('touchJump').onclick=()=>{if(active&&grounded){velocityY=8.2;grounded=false}};
 window.addEventListener('resize',()=>{if(camera&&renderer){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}});
 function boot(){
  let n=0;const t=setInterval(()=>{n=Math.min(100,n+4+Math.random()*9);$('loadfill').style.width=n+'%';$('loadtext').textContent='INITIALISING AURELIUS-9 SYSTEMS · '+Math.floor(n)+'%';if(n>=100){clearInterval(t);$('boot').style.display='none';$('lobby').style.display='block';createPilotPreview();try{let p=JSON.parse(localStorage.getItem('eot-profile')||'null');if(p){$('callsign').value=p.call||'';$('speciality').value=p.speciality||'Planetary Evidence Scientist';$('shipname').value=p.ship||'AURELIUS-9'}}catch(e){}}},100)}
-initRenderer();createWorldPlayer();boot();
+function startEngine(){
+ try{
+  if(!window.WebGLRenderingContext)throw new Error('WebGL is unavailable in this browser.');
+  initRenderer();createWorldPlayer();boot();
+ }catch(err){
+  console.error('EARTH ON TRIAL startup failure:',err);
+  $('loadtext').textContent='SYSTEM INITIALISATION FAILED · '+String(err.message||err).slice(0,100);
+  $('loadfill').style.background='#d45b55';$('loadfill').style.width='100%';
+ }
+}
+if(typeof THREE==='undefined'){
+ $('loadtext').textContent='LOADING 3D ENGINE // CONNECTING TO BACKUP NODE';
+ const backup=document.createElement('script');
+ backup.src='https://unpkg.com/three@0.160.0/build/three.min.js';
+ backup.onload=startEngine;
+ backup.onerror=()=>{$('loadtext').textContent='3D ENGINE UNAVAILABLE · CHECK CDN ACCESS AND RELOAD';$('loadfill').style.background='#d45b55';$('loadfill').style.width='100%'};
+ document.head.appendChild(backup);
+}else startEngine();
 })();
 </script></body></html>"""
 components.html(game, height=1000, scrolling=False)
