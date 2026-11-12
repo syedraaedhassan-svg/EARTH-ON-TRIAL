@@ -61,9 +61,9 @@ game = r"""<!doctype html>
 <div class="dest" data-zone="quetta"><div class="num">04 / PAKISTAN</div><h3>QUETTA</h3><p>Highland ecology · Water security</p></div>
 <div class="dest" data-zone="dubai"><div class="num">05 / INTERNATIONAL</div><h3>DUBAI</h3><p>Desert megacity · Heat resilience</p></div>
 <div class="dest" data-zone="amazon"><div class="num">06 / INTERNATIONAL</div><h3>AMAZON</h3><p>Rainforest frontier · Biodiversity</p></div></div><div class="deployFoot"><button class="btn" id="deployBtn">DEPLOY TO THEATRE →</button><button class="btn secondary" id="backLobby">BACK TO PERSONNEL</button></div></section>
-<section id="hud"><div class="hudTop"><div class="hudBox"><div class="hudSmall">AURELIUS-9 // FIELD LINK</div><div class="hudValue" id="zoneLabel">KARACHI / PAKISTAN</div></div><div class="hudBox"><div class="hudSmall">DEFENCE FILES</div><div class="hudValue" id="evidenceCount">0 / 4</div></div></div><div class="crosshair"></div><div class="interact" id="interactPrompt">[ E ] EXAMINE EVIDENCE</div><div class="bottomHud"><div class="objective"><b>ACTIVE DIRECTIVE // FIELD INVESTIGATION</b><span id="objectiveText">Locate the highlighted evidence site.</span></div><div class="controlsHint">W A S D / ARROWS — MOVE<br>MOUSE — LOOK AROUND<br>SPACE — JUMP · E — INVESTIGATE<br>ESC — PAUSE</div></div></section>
+<section id="hud"><div class="hudTop"><div class="hudBox"><div class="hudSmall">AURELIUS-9 // FIELD LINK</div><div class="hudValue" id="zoneLabel">KARACHI / PAKISTAN</div></div><div class="hudBox"><div class="hudSmall">DEFENCE FILES</div><div class="hudValue" id="evidenceCount">0 / 4</div></div></div><button id="missionLog">MISSION LOG</button><div class="crosshair"></div><div class="interact" id="interactPrompt">[ E ] EXAMINE EVIDENCE</div><div class="bottomHud"><div class="objective"><b>ACTIVE DIRECTIVE // FIELD INVESTIGATION</b><span id="objectiveText">Locate the highlighted evidence site.</span></div><div class="controlsHint">W A S D / ARROWS — MOVE<br>MOUSE — LOOK AROUND<br>SPACE — JUMP · E — INVESTIGATE<br>ESC — PAUSE</div></div></section>
 <div id="touch"><div class="touchpad"><button data-key="w">▲</button><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button></div><button class="touchAction" id="touchJump">JUMP</button><button class="touchAction" id="touchUse">USE</button></div>
-<div id="toast"></div>
+<div id="toast"></div><section id="missionLogPanel"><div class="eyebrow">AURELIUS-9 // FIELD DOSSIER</div><h2>MISSION LOG</h2><p id="missionLogSummary">Evidence recovered: 0 / 4</p><div id="missionLogRows"></div><button class="btn" id="closeMissionLog">CLOSE DOSSIER</button></section>
 <section id="pause"><div class="modal"><div class="eyebrow">AURELIUS-9 // SYSTEM PAUSED</div><h2>MISSION PAUSED</h2><p>Field operations are on standby. Resume your investigation or return to the deployment bay.</p><div class="modalActions"><button class="btn" id="resume">RESUME FIELDWORK</button><button class="btn secondary" id="returnDeploy">CHANGE DROP ZONE</button><button class="btn secondary" id="toLobby">PERSONNEL LOBBY</button></div></div></section>
 <section id="mission"><div class="modal"><div class="eyebrow">FIELD EVIDENCE // RECOVERY COMPLETE</div><h2 id="missionTitle">EVIDENCE RECOVERED</h2><p id="missionText"></p><div class="modalActions"><button class="btn" id="closeMission">CONTINUE INVESTIGATION</button></div></div></section>
 </div>
@@ -94,7 +94,7 @@ function makePilot(){
  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.43,.75,8,16),suit);torso.position.y=1.25;g.add(torso);
  const head=new THREE.Mesh(new THREE.SphereGeometry(.29,24,18),skin);head.position.y=2.12;g.add(head);
  const helmet=new THREE.Mesh(new THREE.SphereGeometry(.36,28,20,0,Math.PI*2,0,Math.PI*.54),gold);helmet.position.y=2.18;g.add(helmet);
- const visor=new THREE.Mesh(new THREE.SphereGeometry(.31,24,18,0,Math.PI*2,.3,1.05),glass);visor.position.set(0,2.16,.11);g.add(visor);
+ const visor=new THREE.Mesh(new THREE.SphereGeometry(.31,24,18,0,Math.PI*2,.3,1.05),glass);visor.position.set(0,2.16,.11);visor.scale.set(1,.72,.45);g.add(visor);const eyeWhite=new THREE.MeshStandardMaterial({color:0xf3ead8,roughness:.55}),eyeDark=new THREE.MeshStandardMaterial({color:0x171b1d,roughness:.35});for(const side of [-1,1]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.045,10,8),eyeWhite);eye.position.set(side*.105,2.105,.335);g.add(eye);const pupil=new THREE.Mesh(new THREE.SphereGeometry(.022,8,6),eyeDark);pupil.position.set(side*.105,2.105,.373);g.add(pupil);const brow=new THREE.Mesh(new THREE.BoxGeometry(.105,.025,.025),suit);brow.position.set(side*.105,2.17,.33);g.add(brow)}const nose=new THREE.Mesh(new THREE.SphereGeometry(.035,8,6),skin);nose.scale.set(.7,1,.7);nose.position.set(0,2.055,.35);g.add(nose);const mouth=new THREE.Mesh(new THREE.BoxGeometry(.095,.018,.018),eyeDark);mouth.position.set(0,1.985,.342);g.add(mouth);
  for(let side of [-1,1]){let arm=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.62,5,10),suit);arm.position.set(side*.55,1.28,0);arm.rotation.z=side*.16;g.add(arm);let leg=new THREE.Mesh(new THREE.CapsuleGeometry(.17,.58,5,10),suit);leg.position.set(side*.22,.43,0);g.add(leg)}
  let chest=new THREE.Mesh(new THREE.BoxGeometry(.46,.23,.08),gold);chest.position.set(0,1.45,.39);g.add(chest);
  // Ajrak-inspired patterned shoulder panels
@@ -103,7 +103,7 @@ function makePilot(){
 }
 let pilotStarted=false;function createPilotPreview(){
  if(pilotStarted)return;pilotStarted=true;
- const r=new THREE.WebGLRenderer({canvas:pilotCanvas,alpha:true,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio,1.7));r.setSize(pilotCanvas.clientWidth||400,pilotCanvas.clientHeight||600,false);const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xc4e8ff,0x24302d,2.5));let l=new THREE.DirectionalLight(0xffd58a,3);l.position.set(3,7,5);s.add(l);let p=makePilot();s.add(p);p.position.y=-.05;const c=new THREE.PerspectiveCamera(34,(pilotCanvas.clientWidth||400)/(pilotCanvas.clientHeight||600),.1,30);c.position.set(0,1.55,5.8);c.lookAt(0,1.3,0);function tick(){if(!$('lobby')||$('lobby').style.display==='none')return;requestAnimationFrame(tick);p.rotation.y=Math.sin(performance.now()*.0005)*.14;r.render(s,c)}tick();
+ const r=new THREE.WebGLRenderer({canvas:pilotCanvas,alpha:true,antialias:false,powerPreference:'low-power'});r.setPixelRatio(Math.min(devicePixelRatio,1));r.setSize(pilotCanvas.clientWidth||400,pilotCanvas.clientHeight||600,false);const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xc4e8ff,0x24302d,2.5));let l=new THREE.DirectionalLight(0xffd58a,3);l.position.set(3,7,5);s.add(l);let p=makePilot();s.add(p);p.position.y=-.05;const c=new THREE.PerspectiveCamera(34,(pilotCanvas.clientWidth||400)/(pilotCanvas.clientHeight||600),.1,30);c.position.set(0,1.55,5.8);c.lookAt(0,1.3,0);function tick(){if(!$('lobby')||$('lobby').style.display==='none')return;requestAnimationFrame(tick);p.rotation.y=Math.sin(performance.now()*.0005)*.14;r.render(s,c)}tick();
 }
 function mat(color,rough=.85,metal=0){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal})}
 function box(parent,x,y,z,w,h,d,color,opts={}){let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,opts.rough??.8,opts.metal??0));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
@@ -125,13 +125,10 @@ function createBuilding(x,z,w,d,h,color,style=0){
  box(b,0,h+.35,0,w+.3,.7,d+.3,0x4b5555);
  // repeated window bays, emissive-ish warm glass
  const winmat=new THREE.MeshStandardMaterial({color:0x294956,roughness:.24,metalness:.4,emissive:0x0a1c25,emissiveIntensity:.4});
- const rows=Math.max(2,Math.floor(h/3.1)),cols=Math.max(2,Math.floor(w/2.8));
- for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
-  for(let side of [-1,1]){
-   let wx=-w/2+1.1+c*(w-2.2)/Math.max(1,cols-1),wy=2+r*2.7;
-   if(wy<h-.7){let win=new THREE.Mesh(new THREE.BoxGeometry(1.05,1.5,.08),winmat);win.position.set(wx,wy,side*(d/2+.045));b.add(win)}
-  }
- }
+ const rows=Math.min(6,Math.max(2,Math.floor(h/5.2))),cols=Math.min(5,Math.max(2,Math.floor(w/3.8))),instances=[];
+ const windowGeo=new THREE.BoxGeometry(1.05,1.5,.08);
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)for(let side of [-1,1]){let wx=-w/2+1.1+c*(w-2.2)/Math.max(1,cols-1),wy=2+r*4.6;if(wy<h-.7){let m=new THREE.Matrix4();m.makeTranslation(wx,wy,side*(d/2+.045));instances.push(m)}}
+ if(instances.length){const wins=new THREE.InstancedMesh(windowGeo,winmat,instances.length);instances.forEach((m,i)=>wins.setMatrixAt(i,m));wins.instanceMatrix.needsUpdate=true;b.add(wins)}
  if(style===1){ // colourful Pakistani market frontage
   box(b,0,2.2,d/2+.18,w*.92,.32,.25,0x176e5b);box(b,0,1.1,d/2+.2,w*.82,.13,.25,0xd6aa4c);
   for(let n=-2;n<=2;n++){let sign=box(b,n*w*.15,3.2,d/2+.19,.65,.12,.18,n%2?0xc44e42:0xe1b44e);sign.rotation.z=.03*n}
@@ -148,7 +145,7 @@ function makeTarget(pos,name,index){
  let orb=new THREE.Mesh(new THREE.IcosahedronGeometry(.42,2),new THREE.MeshStandardMaterial({color:0xf2cb71,emissive:0x9a6222,emissiveIntensity:1.4,metalness:.55,roughness:.2}));orb.position.y=1.2;g.add(orb);
  let label=document.createElement('div');label.textContent='EVIDENCE '+String(index+1).padStart(2,'0');label.style.cssText='position:absolute;display:none;color:#f2d17a;font:11px monospace;letter-spacing:2px';g.userData={name,index};targets.push(g);
 }
-function clearWorld(){while(scene.children.length){let o=scene.children.pop();if(o.geometry)o.geometry.dispose()}targets=[]}
+function clearWorld(){while(scene.children.length){let o=scene.children.pop();o.traverse?.(n=>{if(n.geometry)n.geometry.dispose();if(n.material){if(Array.isArray(n.material))n.material.forEach(m=>m.dispose());else n.material.dispose()}})}targets=[];colliders=[]}
 function buildZone(key){
  zone=key;const data=zones[key];clearWorld();scene.background=new THREE.Color(data.sky);scene.fog=new THREE.Fog(data.sky,45,210);
  scene.add(new THREE.HemisphereLight(0xe0e9ec,0x4b4030,1.4));let sun=new THREE.DirectionalLight(0xffe0b4,3);sun.position.set(-50,80,40);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
@@ -207,7 +204,7 @@ canvas.addEventListener('click',()=>{if(active&&!locked&&innerWidth>800)canvas.r
 $('join').onclick=()=>{profile.call=$('callsign').value.trim()||'RAZA-01';profile.speciality=$('speciality').value;profile.ship=$('shipname').value.trim()||'AURELIUS-9';try{localStorage.setItem('eot-profile',JSON.stringify(profile))}catch(e){}$('lobby').style.display='none';$('deploy').style.display='block'};
 $('backLobby').onclick=()=>{$('deploy').style.display='none';$('lobby').style.display='block';createPilotPreview()};
 document.querySelectorAll('.dest').forEach(el=>el.onclick=()=>{document.querySelectorAll('.dest').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');selected=el.dataset.zone});
-$('deployBtn').onclick=deploy;$('resume').onclick=()=>{$('pause').style.display='none';active=true;if(innerWidth>800)canvas.requestPointerLock?.()};
+$('missionLog').onclick=()=>{const d=zones[zone];$('missionLogSummary').textContent='THEATRE: '+d.label+' · SECURED: '+evidence.size+'/4';$('missionLogRows').innerHTML=d.mission.map((m,i)=>'<div class="missionRow">'+String(i+1).padStart(2,'0')+' // '+m+' <strong style="float:right;color:'+(evidence.has(zone+i)?'#56d6a8':'#d4b65c')+'">'+(evidence.has(zone+i)?'SECURED':'OUTSTANDING')+'</strong></div>').join('');$('missionLogPanel').style.display='block';active=false;document.exitPointerLock?.()};$('closeMissionLog').onclick=()=>{$('missionLogPanel').style.display='none';active=true;if(innerWidth>800)canvas.requestPointerLock?.()};$('deployBtn').onclick=deploy;$('resume').onclick=()=>{$('pause').style.display='none';active=true;if(innerWidth>800)canvas.requestPointerLock?.()};
 $('returnDeploy').onclick=()=>{active=false;$('pause').style.display='none';$('hud').style.display='none';$('deploy').style.display='block';document.exitPointerLock?.()};
 $('toLobby').onclick=()=>{active=false;$('pause').style.display='none';$('hud').style.display='none';$('lobby').style.display='block';document.exitPointerLock?.();createPilotPreview()};
 $('closeMission').onclick=()=>{$('mission').style.display='none';active=true;if(innerWidth>800)canvas.requestPointerLock?.();$('objectiveText').textContent='Evidence secured. Find the next gold beacon.'};
