@@ -171,6 +171,14 @@ function buildZone(key){
  else {for(let i=0;i<45;i++){let tree=new THREE.Group();let trunk=new THREE.Mesh(new THREE.CylinderGeometry(.35,.55,5,7),mat(0x493a2c));trunk.position.y=2.5;tree.add(trunk);let crown=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*2,9,7),mat(i%2?0x226d43:0x347e4b));crown.position.y=6;tree.add(crown);tree.position.set(-180+Math.random()*360,0,-180+Math.random()*360);scene.add(tree)}}
  // street furniture, lamps, signal pylons
  for(let x=-170;x<=170;x+=42)for(let z=-170;z<=170;z+=42){if(Math.abs(x%42)>1||Math.abs(z%42)>1)continue;box(scene,x+9,2.5,z+9,.22,5,.22,0x303b3d);let lamp=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8),new THREE.MeshBasicMaterial({color:0xf6d38a}));lamp.position.set(x+9,5.1,z+9);scene.add(lamp)}
+ // Lightweight overhead utility cables: a recognisable Karachi street detail.
+ if(key==='karachi'){
+  const cableMat=mat(0x202629,.9);
+  for(let z=-126;z<=126;z+=84){
+   const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-170,10,z),new THREE.Vector3(-55,8.8,z+2),new THREE.Vector3(55,8.8,z-2),new THREE.Vector3(170,10,z)]);
+   scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,.035,5,false),cableMat));
+  }
+ }
  // Evidence sites placed on walkable streets/plaza
  let points=[new THREE.Vector3(-24,0,-18),new THREE.Vector3(26,0,-68),new THREE.Vector3(-72,0,35),new THREE.Vector3(75,0,65)];
  data.mission.forEach((n,i)=>makeTarget(points[i],n,i));
