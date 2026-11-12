@@ -91,7 +91,8 @@ function makePilot(){
  for(let side of [-1,1]){let p=new THREE.Mesh(new THREE.BoxGeometry(.28,.35,.08),new THREE.MeshStandardMaterial({color:0x9c2f35,metalness:.2}));p.position.set(side*.48,1.68,0);g.add(p)}
  return g;
 }
-function createPilotPreview(){
+let pilotStarted=false;function createPilotPreview(){
+ if(pilotStarted)return;pilotStarted=true;
  const r=new THREE.WebGLRenderer({canvas:pilotCanvas,alpha:true,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio,1.7));r.setSize(pilotCanvas.clientWidth||400,pilotCanvas.clientHeight||600,false);const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xc4e8ff,0x24302d,2.5));let l=new THREE.DirectionalLight(0xffd58a,3);l.position.set(3,7,5);s.add(l);let p=makePilot();s.add(p);p.position.y=-.05;const c=new THREE.PerspectiveCamera(34,(pilotCanvas.clientWidth||400)/(pilotCanvas.clientHeight||600),.1,30);c.position.set(0,1.55,5.8);c.lookAt(0,1.3,0);function tick(){if(!$('lobby')||$('lobby').style.display==='none')return;requestAnimationFrame(tick);p.rotation.y=Math.sin(performance.now()*.0005)*.14;r.render(s,c)}tick();
 }
 function mat(color,rough=.85,metal=0){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal})}
